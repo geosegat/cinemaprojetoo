@@ -7,8 +7,12 @@ const nextConfig: NextConfig = {
       {
         protocol: "https",
         hostname: "www.shoppingnovaiguacu.com.br",
-        pathname:
-          "/sites/nova-iguacu/files/styles/banner_interna_1920_x_420/public/shopping-media/Banner%20Interna/**",
+        pathname: "/sites/**",
+      },
+      {
+        protocol: "https",
+        hostname: "i.imgur.com",
+        pathname: "/**",
       },
     ],
   },

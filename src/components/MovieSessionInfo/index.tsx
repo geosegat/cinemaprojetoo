@@ -20,9 +20,13 @@ interface MovieSessionInfoProps {
   audioFormat?: string;
   onPressBuyTicket?: () => void;
   hideDetails?: boolean;
+  roomSession?: string;
+  sessions?: {
+    id: number;
+    room_name: string;
+    session_time: string;
+  }[];
 }
-
-// const moviesTimes = [{ value: "21:00" }];
 
 export default function MovieSessionInfo({
   tittle,
@@ -39,7 +43,22 @@ export default function MovieSessionInfo({
   audioFormat,
   onPressBuyTicket,
   hideDetails = false,
+  roomSession,
+  sessions = [],
 }: MovieSessionInfoProps) {
+  const formatSessionTime = (timeString: string) => {
+    const date = new Date(timeString);
+    return date.toLocaleTimeString("pt-BR", {
+      hour: "2-digit",
+      minute: "2-digit",
+    });
+  };
+
+  const sessionTimes = sessions.map((session) => ({
+    label: formatSessionTime(session.session_time),
+    value: formatSessionTime(session.session_time),
+  }));
+
   return (
     <Paper className="flex bg-gray-200 py-12 justify-center">
       <div className="container flex gap-8">
@@ -62,7 +81,7 @@ export default function MovieSessionInfo({
                 >
                   {rating}
                 </Typography>
-                <Typography fontSize={14}>{duration}</Typography>
+                <Typography fontSize={14}>{duration} min</Typography>
               </div>
               <div className="space-y-8">
                 <Typography style={{ width: "750px" }} fontSize={18}>
@@ -91,18 +110,20 @@ export default function MovieSessionInfo({
                   </div>
                 </div>
                 <LabelWithDescription
-                  label="Sala 6"
+                  label={roomSession}
                   description={audioFormat}
                   className="flex gap-2"
                 />
-                <ItemSelector
-                  height="50px"
-                  width="50px"
-                  label="oi"
-                  items={[{ value: "21:00" }]}
-                  initialValue="21:20"
-                  onClick={onPressBuyTicket}
-                />
+                {sessionTimes.length > 0 && (
+                  <ItemSelector
+                    height="50px"
+                    width="50px"
+                    label="Horários"
+                    items={sessionTimes}
+                    initialValue={sessionTimes[0].value}
+                    onClick={onPressBuyTicket}
+                  />
+                )}
               </div>
             </>
           )}

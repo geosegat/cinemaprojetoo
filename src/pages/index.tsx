@@ -2,7 +2,7 @@ import * as React from "react";
 import Header from "@/components/Header";
 import Banner from "@/components/Banner";
 import MovieSessionInfo from "@/components/MovieSessionInfo";
-import { getMovies, getSessionById } from "../pages/api/movies";
+import { getMovies, getSession, getSessionById } from "../pages/api/movies";
 import SeatSelection from "@/components/SeatSelection";
 import ItemSelector from "@/components/ItemSelector";
 import { Box, Modal, Typography } from "@mui/material";
@@ -24,6 +24,13 @@ interface Movie {
   audio_format: string;
 }
 
+interface Session {
+  id: number;
+  movie_id: number;
+  room_name: string;
+  session_time: string;
+}
+
 export default function HomePage() {
   const dates = [
     { label: "Hoje", value: "31/10" },
@@ -36,11 +43,20 @@ export default function HomePage() {
   ];
 
   const [movies, setMovies] = React.useState<Movie[]>([]);
+  const [sessions, setSessions] = React.useState<Session[]>([]);
   const [tickets, setTickets] = React.useState(0);
   const [selectedMovieId, setSelectedMovieId] = React.useState<number | null>(
     null
   );
   const { position, startQueue, processStarted, buyTicket } = useQueue();
+
+  const formatSessionTime = (timeString: string) => {
+    const date = new Date(timeString);
+    return date.toLocaleTimeString("pt-BR", {
+      hour: "2-digit",
+      minute: "2-digit",
+    });
+  };
 
   const handleBuyTicket = (movieId: number) => {
     setSelectedMovieId(movieId);
@@ -69,12 +85,24 @@ export default function HomePage() {
       try {
         const sessionData = await getSessionById(id);
         setTickets(sessionData.tickets.length);
-        console.log(sessionData.tickets.length);
       } catch (e) {
         console.error("Erro ao buscar tickets", e);
       }
     };
     fetchTickets(20);
+  }, []);
+
+  React.useEffect(() => {
+    const fetchSessions = async () => {
+      try {
+        const sessionsData = await getSession();
+        setSessions(sessionsData);
+      } catch (err) {
+        console.error("Erro ao buscar sessões:", err);
+      }
+    };
+
+    fetchSessions();
   }, []);
 
   return (
@@ -115,6 +143,15 @@ export default function HomePage() {
               countryOfOrigin={movie.country_of_origin}
               imageUrl={movie.image_url}
               audioFormat={movie.audio_format}
+              sessions={sessions.filter(
+                (session) => session.movie_id === movie.id
+              )}
+              roomSession={
+                sessions.find((session) => session.movie_id === movie.id)
+                  ? sessions.find((session) => session.movie_id === movie.id)!
+                      .room_name
+                  : "Sala não encontrada"
+              }
               onPressBuyTicket={() => {
                 startQueue();
                 handleBuyTicket(movie.id);
